@@ -1,5 +1,6 @@
 package com.fastcampus.Board_Huge_Traffic_Handling.controller;
 
+import com.fastcampus.Board_Huge_Traffic_Handling.aop.LoginCheck;
 import com.fastcampus.Board_Huge_Traffic_Handling.dto.UserDTO;
 import com.fastcampus.Board_Huge_Traffic_Handling.dto.request.UserDeleteId;
 import com.fastcampus.Board_Huge_Traffic_Handling.dto.request.UserLoginRequest;
@@ -82,12 +83,13 @@ public class UserController {
     }
 
     @PatchMapping("password")
-    public ResponseEntity<LoginResponse> updateUserPassword(@RequestBody UserUpdatePasswordRequest userUpdatePasswordRequest,
+    @LoginCheck(type = LoginCheck.UserType.USER )
+    public ResponseEntity<LoginResponse> updateUserPassword(String accountId, @RequestBody UserUpdatePasswordRequest userUpdatePasswordRequest,
                                                             HttpSession session) {
         ResponseEntity<LoginResponse> responseEntity = null;
         LoginResponse loginResponse = null;
 
-        String id = SessionUtil.getLoginMemberId(session);
+        String id = accountId;
         String beforePassword = userUpdatePasswordRequest.getBeforePassword();
         String afterPassword = userUpdatePasswordRequest.getAfterPassword();
 
