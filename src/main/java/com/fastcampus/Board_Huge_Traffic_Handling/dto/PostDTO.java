@@ -23,4 +23,7 @@ public class PostDTO {
     private int fileId;
     private Date updateTime;
 
+    //태그 정보를 위해
+    private List<TagDTO> tagDTOList;
+
 }
