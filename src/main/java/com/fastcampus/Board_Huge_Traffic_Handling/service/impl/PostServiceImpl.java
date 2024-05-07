@@ -12,12 +12,14 @@ import com.fastcampus.Board_Huge_Traffic_Handling.service.PostService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
 
 @Service
 @Log4j2
+@Transactional
 public class PostServiceImpl implements PostService {
 
     @Autowired
@@ -39,15 +41,20 @@ public class PostServiceImpl implements PostService {
         postDTO.setCreateTime(new Date());
 
         if(memberInfo != null) {
-            postMapper.register(postDTO);
+            try {
+                postMapper.register(postDTO);
 
-            //마지막 AutoIncrement 값을 가져오기 위해서
-            Integer postId = postDTO.getId();
-            for(int i = 0; i < postDTO.getTagDTOList().size(); i++) {
-                TagDTO tagDTO = postDTO.getTagDTOList().get(i);
-                tagMapper.register(tagDTO);
-                Integer tagId = tagDTO.getId();
-                tagMapper.createPostTag(tagId, postId);
+                //마지막 AutoIncrement 값을 가져오기 위해서
+                Integer postId = postDTO.getId();
+                for(int i = 0; i < postDTO.getTagDTOList().size(); i++) {
+                    TagDTO tagDTO = postDTO.getTagDTOList().get(i);
+                    tagMapper.register(tagDTO);
+                    Integer tagId = tagDTO.getId();
+                    tagMapper.createPostTag(tagId, postId);
+                }
+            } catch(RuntimeException e) {
+                log.error("register ERROR! {}", postDTO);
+                throw new RuntimeException("register ERROR! 게시글 등록 메서드를 확인해주세요" + postDTO);
             }
         } else {
             log.error("register ERROR! {}", postDTO);
@@ -57,14 +64,27 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostDTO> getMtPosts(int accountId) {
-        List<PostDTO> postDtoList = postMapper.selectMyPosts(accountId);
+        List<PostDTO> postDtoList = null;
+        try {
+            postDtoList = postMapper.selectMyPosts(accountId);
+
+        } catch(RuntimeException e) {
+            log.error("getMtPosts ERROR! {}", accountId);
+            throw new RuntimeException("register ERROR! 게시글 조회 메서드를 확인해주세요" + accountId);
+        }
         return postDtoList;
     }
 
     @Override
     public void updatePosts(PostDTO postDTO) {
         if(postDTO != null && postDTO.getId() != 0) {
-            postMapper.updatePosts(postDTO);
+            try {
+                postMapper.updatePosts(postDTO);
+
+            } catch(RuntimeException e) {
+                log.error("updatePosts ERROR! {}", postDTO);
+                throw new RuntimeException("updatePosts ERROR! 게시글 수정 메서드를 확인해주세요" + postDTO);
+            }
         } else {
             log.error("updatePosts ERROR! {}", postDTO);
             throw new RuntimeException("updatePosts ERROR! 게시글 수정 메서드를 확인해주세요" + postDTO);
@@ -75,7 +95,12 @@ public class PostServiceImpl implements PostService {
     @Override
     public void deletePosts(int userId, int postId) {
         if(userId != 0 && postId != 0) {
-            postMapper.deletePosts(postId);
+            try {
+                postMapper.deletePosts(postId);
+            } catch(RuntimeException e) {
+                log.error("deletePosts ERROR! {}", postId);
+                throw new RuntimeException("updatePosts ERROR! 게시글 수정 메서드를 확인해주세요" + postId);
+            }
         } else {
             log.error("deletePosts ERROR! {}", postId);
             throw new RuntimeException("updatePosts ERROR! 게시글 수정 메서드를 확인해주세요" + postId);
